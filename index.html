@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MRPAS Rapport</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0e14;color:#c9d1d9;font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;min-height:100vh}
+.app{max-width:700px;margin:0 auto;padding:12px}
+.header{background:#0d1117;border:1px solid #1f6feb;border-radius:8px;padding:14px 18px;margin-bottom:12px;display:flex;align-items:center;gap:12px}
+.header-icon{width:40px;height:40px;background:#1f6feb22;border:1px solid #1f6feb;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.header h1{font-size:16px;font-weight:600;color:#e6edf3;letter-spacing:.5px}
+.header p{font-size:11px;color:#7d8590;margin-top:2px}
+.section{background:#0d1117;border:1px solid #21262d;border-radius:8px;margin-bottom:10px;overflow:hidden}
+.section-header{background:#161b22;padding:10px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #21262d;cursor:pointer;user-select:none}
+.section-header h2{font-size:12px;font-weight:600;color:#8b949e;letter-spacing:1px;text-transform:uppercase;flex:1}
+.section-header .badge{background:#1f6feb22;color:#58a6ff;font-size:10px;padding:2px 7px;border-radius:10px;border:1px solid #1f6feb44}
+.section-body{padding:12px 14px}
+.chevron{color:#7d8590;font-size:12px;transition:transform .2s}
+.chevron.open{transform:rotate(180deg)}
+label{display:block;font-size:11px;color:#7d8590;margin-bottom:4px;margin-top:10px;text-transform:uppercase;letter-spacing:.5px}
+label:first-child{margin-top:0}
+input,textarea,select{width:100%;background:#161b22;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;padding:8px 10px;font-size:13px;font-family:inherit;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:none;border-color:#1f6feb;background:#0d1117}
+textarea{min-height:70px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.ai-box{background:#0a1628;border:1px solid #1f6feb44;border-radius:6px;padding:10px;margin-top:8px}
+.ai-box p{font-size:11px;color:#58a6ff;margin-bottom:6px}
+.ai-btn{background:#1f6feb;color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:13px;cursor:pointer;width:100%;font-weight:600;letter-spacing:.3px}
+.ai-btn:hover{background:#388bfd}
+.ai-btn:disabled{background:#21262d;color:#7d8590;cursor:not-allowed}
+.ai-status{font-size:11px;color:#7d8590;margin-top:6px;text-align:center;min-height:16px}
+.field-row{display:flex;gap:6px;align-items:flex-end}
+.field-row input{flex:1}
+.field-row button{background:#21262d;border:1px solid #30363d;color:#c9d1d9;border-radius:6px;padding:8px 12px;cursor:pointer;font-size:13px;white-space:nowrap}
+.field-row button:hover{background:#30363d}
+#map{height:280px;border-radius:6px;border:1px solid #30363d;margin-top:8px}
+.poi-list{margin-top:8px}
+.poi-item{background:#161b22;border:1px solid #21262d;border-radius:6px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px;font-size:12px}
+.poi-item .poi-coords{color:#58a6ff;font-family:monospace;font-size:11px}
+.poi-item .poi-name{flex:1;color:#c9d1d9}
+.poi-item button{background:none;border:none;color:#f85149;cursor:pointer;font-size:14px;padding:2px}
+.weather-row{display:flex;gap:8px;align-items:center;margin-top:6px}
+.weather-pill{background:#161b22;border:1px solid #21262d;border-radius:6px;padding:6px 10px;font-size:12px;display:flex;flex-direction:column;gap:2px;flex:1;text-align:center}
+.weather-pill span:first-child{color:#7d8590;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.weather-pill span:last-child{color:#c9d1d9;font-weight:500}
+.weather-btn{background:#21262d;border:1px solid #30363d;color:#58a6ff;border-radius:6px;padding:7px 12px;cursor:pointer;font-size:12px}
+.weather-btn:hover{background:#30363d}
+.img-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.img-thumb{width:72px;height:72px;object-fit:cover;border-radius:6px;border:1px solid #30363d}
+.img-add{width:72px;height:72px;background:#161b22;border:1px dashed #30363d;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:24px;color:#7d8590}
+.img-add:hover{border-color:#58a6ff;color:#58a6ff}
+.submit-row{display:flex;gap:8px;margin-top:12px}
+.btn-signal{background:#3a76f8;border:none;color:#fff;border-radius:8px;padding:12px 18px;font-size:14px;font-weight:600;cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-signal:hover{background:#2563eb}
+.btn-copy{background:#21262d;border:1px solid #30363d;color:#c9d1d9;border-radius:8px;padding:12px 18px;font-size:14px;cursor:pointer;flex:1}
+.btn-copy:hover{background:#30363d}
+.btn-print{background:#21262d;border:1px solid #30363d;color:#c9d1d9;border-radius:8px;padding:12px 18px;font-size:14px;cursor:pointer}
+.btn-print:hover{background:#30363d}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1f6feb;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9999}
+.toast.show{opacity:1}
+.s7-field{margin-bottom:8px}
+.s7-label{font-size:11px;color:#58a6ff;text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
+.s7-val{background:#161b22;border:1px solid #21262d;border-radius:6px;padding:7px 10px;font-size:13px;color:#c9d1d9;width:100%;resize:vertical}
+.loading-dots::after{content:'';animation:dots 1.2s infinite}
+@keyframes dots{0%{content:''}33%{content:'.'}66%{content:'..'}100%{content:'...'}}
+.battery-bar{height:8px;background:#21262d;border-radius:4px;margin-top:4px;overflow:hidden}
+.battery-fill{height:100%;border-radius:4px;transition:width .3s,background .3s}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="header">
+  <div class="header-icon">🎯</div>
+  <div>
+    <h1>MRPAS Rapport — 7S Modellen</h1>
+    <p id="ts-display">Laddar tid...</p>
+  </div>
+</div>
+
+<!-- META -->
+<div class="section">
+  <div class="section-header" onclick="toggle(this)">
+    <h2>Rapportmeta</h2>
+    <span class="badge">Obligatorisk</span>
+    <span class="chevron open">▼</span>
+  </div>
+  <div class="section-body">
+    <div class="grid2">
+      <div><label>Namn / Identitet</label><input id="meta-name" placeholder="ex. Soldat Johansson"></div>
+      <div><label>Enhet / Förband</label><input id="meta-unit" placeholder="ex. 1./I 19"></div>
+    </div>
+    <div class="grid3">
+      <div><label>Datum</label><input type="date" id="meta-date"></div>
+      <div><label>Tid (lokal)</label><input type="time" id="meta-time"></div>
+      <div><label>Rapport nr</label><input id="meta-nr" placeholder="ex. 001"></div>
+    </div>
+    <label>Spaningsfråga</label>
+    <textarea id="spaningsfraga" placeholder="Vilken spaningsfråga besvarar denna rapport?"></textarea>
+  </div>
+</div>
+
+<!-- AI INPUT -->
+<div class="section">
+  <div class="section-header" onclick="toggle(this)">
+    <h2>AI-assisterad inmatning</h2>
+    <span class="badge">Claude</span>
+    <span class="chevron open">▼</span>
+  </div>
+  <div class="section-body">
+    <label>Beskriv situationen fritt</label>
+    <textarea id="ai-input" placeholder="Beskriv vad du observerat, i ditt eget språk. Claude fyller i 7S-fälten automatiskt..." style="min-height:100px"></textarea>
+    <div class="ai-box">
+      <p>🤖 Claude analyserar din text och populerar 7S-modellens fält</p>
+      <button class="ai-btn" id="ai-btn" onclick="runAI()">Generera 7S-rapport med AI</button>
+      <div class="ai-status" id="ai-status"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 7S FIELDS -->
+<div class="section">
+  <div class="section-header" onclick="toggle(this)">
+    <h2>7S Modellen</h2>
+    <span class="badge">Rapport</span>
+    <span class="chevron open">▼</span>
+  </div>
+  <div class="section-body" id="s7-body">
+    <div class="s7-field"><div class="s7-label">S1 — Situation</div><textarea class="s7-val" id="s1" placeholder="Beskriv den övergripande situationen..."></textarea></div>
+    <div class="s7-field"><div class="s7-label">S2 — Styrka</div><textarea class="s7-val" id="s2" placeholder="Fiendens/observerade styrkors storlek och sammansättning..."></textarea></div>
+    <div class="s7-field"><div class="s7-label">S3 — Stridsvärde</div><textarea class="s7-val" id="s3" placeholder="Bedömning av stridsvärde och kapacitet..."></textarea></div>
+    <div class="s7-field"><div class="s7-label">S4 — Sammansättning</div><textarea class="s7-val" id="s4" placeholder="Förbandstyper, fordon, utrustning..."></textarea></div>
+    <div class="s7-field"><div class="s7-label">S5 — Stöd</div><textarea class="s7-val" id="s5" placeholder="Logistik, underhåll, eldunderstöd..."></textarea></div>
+    <div class="s7-field"><div class="s7-label">S6 — Samband</div><textarea class="s7-val" id="s6" placeholder="Kommunikation, ledning, C2-struktur..."></textarea></div>
+    <div class="s7-field"><div class="s7-label">S7 — Speciellt</div><textarea class="s7-val" id="s7" placeholder="Övrigt av spaningsvärde, avvikelser, hot..."></textarea></div>
+  </div>
+</div>
+
+<!-- SENSOR/ENV -->
+<div class="section">
+  <div class="section-header" onclick="toggle(this)">
+    <h2>Sensor & Miljö</h2>
+    <span class="badge">Data</span>
+    <span class="chevron open">▼</span>
+  </div>
+  <div class="section-body">
+    <div class="grid2">
+      <div>
+        <label>Batterinivå (%)</label>
+        <input type="number" id="battery" min="0" max="100" placeholder="ex. 72" oninput="updateBattery()">
+        <div class="battery-bar"><div class="battery-fill" id="battery-fill" style="width:0%"></div></div>
+      </div>
+      <div>
+        <label>Höjd (m ö.h.)</label>
+        <input type="number" id="altitude" placeholder="ex. 245">
+        <button onclick="getGPS()" style="margin-top:6px;width:100%;background:#21262d;border:1px solid #30363d;color:#58a6ff;border-radius:6px;padding:6px;cursor:pointer;font-size:12px">📍 Hämta GPS-position</button>
+      </div>
+    </div>
+    <label>Väder</label>
+    <div class="weather-row">
+      <div class="weather-pill"><span>Temp</span><span id="w-temp">—</span></div>
+      <div class="weather-pill"><span>Vind</span><span id="w-wind">—</span></div>
+      <div class="weather-pill"><span>Sikt</span><span id="w-vis">—</span></div>
+      <div class="weather-pill"><span>Beskr.</span><span id="w-desc">—</span></div>
+      <button class="weather-btn" onclick="fetchWeather()">🌤 Hämta</button>
+    </div>
+    <div class="grid2" style="margin-top:8px">
+      <div><label>Vindhastighet (m/s)</label><input id="w-wind-manual" placeholder="Manuell inmatning"></div>
+      <div><label>Siktförhållanden</label><input id="w-vis-manual" placeholder="ex. God, Begränsad"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAP -->
+<div class="section">
+  <div class="section-header" onclick="toggle(this)">
+    <h2>Karta & POI</h2>
+    <span class="badge">OpenStreetMap</span>
+    <span class="chevron open">▼</span>
+  </div>
+  <div class="section-body">
+    <p style="font-size:11px;color:#7d8590">Klicka på kartan för att lägga till punkter av intresse (POI). Zoom och panorera fritt.</p>
+    <div id="map"></div>
+    <div class="field-row" style="margin-top:8px">
+      <input id="poi-name-input" placeholder="Namn på POI (ex. Fordonskolumn, Bro, Eldställning)">
+      <button onclick="addPoiManual()">+ Lägg till</button>
+    </div>
+    <div class="poi-list" id="poi-list"></div>
+    <input id="poi-lat" type="hidden"><input id="poi-lng" type="hidden">
+  </div>
+</div>
+
+<!-- IMAGES -->
+<div class="section">
+  <div class="section-header" onclick="toggle(this)">
+    <h2>Bilder</h2>
+    <span class="badge">Media</span>
+    <span class="chevron open">▼</span>
+  </div>
+  <div class="section-body">
+    <p style="font-size:11px;color:#7d8590;margin-bottom:8px">Bifoga foton från kamera eller galleri.</p>
+    <input type="file" id="img-input" accept="image/*" multiple capture="environment" style="display:none" onchange="handleImages(event)">
+    <div class="img-grid" id="img-grid">
+      <div class="img-add" onclick="document.getElementById('img-input').click()">+</div>
+    </div>
+  </div>
+</div>
+
+<!-- SUBMIT -->
+<div class="submit-row">
+  <button class="btn-signal" onclick="sendSignal()">📨 Skicka via Signal</button>
+  <button class="btn-copy" onclick="copyReport()">📋 Kopiera</button>
+  <button class="btn-print" onclick="printReport()">🖨</button>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CLAUDE_MODEL = "claude-sonnet-4-20250514";
+let map, clickMarker, pois=[], images=[], pendingLat=null, pendingLng=null;
+
+function now(){
+  const d=new Date();
+  document.getElementById('ts-display').textContent=
+    d.toLocaleDateString('sv-SE')+' '+d.toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});
+  const di=document.getElementById('meta-date');
+  const ti=document.getElementById('meta-time');
+  if(!di.value) di.value=d.toISOString().slice(0,10);
+  if(!ti.value) ti.value=d.toTimeString().slice(0,5);
+}
+now(); setInterval(()=>document.getElementById('ts-display').textContent=new Date().toLocaleDateString('sv-SE')+' '+new Date().toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'}),30000);
+
+function toggle(hdr){
+  const body=hdr.nextElementSibling;
+  const ch=hdr.querySelector('.chevron');
+  if(body.style.display==='none'){body.style.display='';ch.classList.add('open')}
+  else{body.style.display='none';ch.classList.remove('open')}
+  if(hdr.parentElement.querySelector('#map')&&body.style.display!=='none') setTimeout(()=>map&&map.invalidateSize(),100);
+}
+
+function initMap(){
+  map=L.map('map').setView([63.0,16.0],5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:18}).addTo(map);
+  map.on('click',e=>{
+    pendingLat=e.latlng.lat.toFixed(5);
+    pendingLng=e.latlng.lng.toFixed(5);
+    document.getElementById('poi-lat').value=pendingLat;
+    document.getElementById('poi-lng').value=pendingLng;
+    if(clickMarker) map.removeLayer(clickMarker);
+    clickMarker=L.marker([pendingLat,pendingLng],{icon:L.divIcon({className:'',html:'<div style="background:#f85149;width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 4px #0008"></div>',iconSize:[14,14],iconAnchor:[7,7]})}).addTo(map).bindPopup('Namnge och klicka "Lägg till"').openPopup();
+  });
+}
+initMap();
+
+function addPoiManual(){
+  const nm=document.getElementById('poi-name-input').value.trim()||'POI '+(pois.length+1);
+  const lat=pendingLat||document.getElementById('poi-lat').value;
+  const lng=pendingLng||document.getElementById('poi-lng').value;
+  if(!lat||!lng){showToast('Klicka på kartan för att välja position');return}
+  addPoi(nm,parseFloat(lat),parseFloat(lng));
+  document.getElementById('poi-name-input').value='';
+  pendingLat=null;pendingLng=null;
+  if(clickMarker){map.removeLayer(clickMarker);clickMarker=null;}
+}
+
+function addPoi(name,lat,lng){
+  const id=Date.now();
+  pois.push({id,name,lat,lng});
+  const mk=L.marker([lat,lng],{icon:L.divIcon({className:'',html:`<div style="background:#1f6feb;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;white-space:nowrap;border:1px solid #388bfd;box-shadow:0 1px 4px #0008">${name}</div>`,iconAnchor:[0,10]})}).addTo(map).bindPopup(name);
+  pois[pois.length-1].marker=mk;
+  renderPois();
+}
+
+function renderPois(){
+  const el=document.getElementById('poi-list');
+  el.innerHTML=pois.map((p,i)=>`<div class="poi-item">
+    <span class="poi-name">${p.name}</span>
+    <span class="poi-coords">${p.lat}, ${p.lng}</span>
+    <button onclick="removePoi(${p.id})">✕</button>
+  </div>`).join('');
+}
+
+function removePoi(id){
+  const idx=pois.findIndex(p=>p.id===id);
+  if(idx>=0){map.removeLayer(pois[idx].marker);pois.splice(idx,1);renderPois();}
+}
+
+function getGPS(){
+  if(!navigator.geolocation){showToast('GPS ej tillgänglig');return}
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const {latitude:lat,longitude:lng,altitude}=pos.coords;
+    map.setView([lat,lng],13);
+    pendingLat=lat.toFixed(5);pendingLng=lng.toFixed(5);
+    document.getElementById('poi-lat').value=pendingLat;
+    document.getElementById('poi-lng').value=pendingLng;
+    if(altitude) document.getElementById('altitude').value=Math.round(altitude);
+    showToast('Position hämtad: '+pendingLat+', '+pendingLng);
+  },()=>showToast('Kunde ej hämta GPS-position'));
+}
+
+async function fetchWeather(){
+  const lat=pendingLat||document.getElementById('poi-lat').value||63.0;
+  const lng=pendingLng||document.getElementById('poi-lng').value||16.0;
+  try{
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,wind_speed_10m,visibility,weather_code&wind_speed_unit=ms`);
+    const d=await r.json();
+    const c=d.current;
+    document.getElementById('w-temp').textContent=c.temperature_2m+'°C';
+    document.getElementById('w-wind').textContent=c.wind_speed_10m+' m/s';
+    document.getElementById('w-vis').textContent=c.visibility>=10000?'God':(c.visibility>=1000?'Måttlig':'Dålig');
+    document.getElementById('w-desc').textContent=weatherCode(c.weather_code);
+    showToast('Väder uppdaterat');
+  }catch(e){showToast('Kunde ej hämta väder')}
+}
+
+function weatherCode(c){
+  if(c===0)return'Klart';if(c<=2)return'Halvklart';if(c===3)return'Mulet';
+  if(c<=49)return'Dimma';if(c<=59)return'Duggregn';if(c<=69)return'Regn';
+  if(c<=79)return'Snö';if(c<=82)return'Skurar';if(c<=99)return'Åska';return'Okänt';
+}
+
+function updateBattery(){
+  const v=parseInt(document.getElementById('battery').value)||0;
+  const fill=document.getElementById('battery-fill');
+  fill.style.width=v+'%';
+  fill.style.background=v>50?'#3fb950':v>20?'#d29922':'#f85149';
+}
+
+function handleImages(e){
+  const files=[...e.target.files];
+  files.forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=ev=>{images.push(ev.target.result);renderImages();}
+    reader.readAsDataURL(f);
+  });
+}
+
+function renderImages(){
+  const grid=document.getElementById('img-grid');
+  const add=grid.querySelector('.img-add');
+  grid.innerHTML='';
+  images.forEach((src,i)=>{
+    const img=document.createElement('img');
+    img.src=src;img.className='img-thumb';
+    img.onclick=()=>{if(confirm('Ta bort bild?')){images.splice(i,1);renderImages();}}
+    grid.appendChild(img);
+  });
+  grid.appendChild(add);
+}
+
+async function runAI(){
+  const txt=document.getElementById('ai-input').value.trim();
+  if(!txt){showToast('Ange en beskrivning först');return}
+  const btn=document.getElementById('ai-btn');
+  const status=document.getElementById('ai-status');
+  btn.disabled=true;btn.textContent='Analyserar';btn.classList.add('loading-dots');
+  status.textContent='Claude genererar 7S-rapport...';
+  const spaningsfraga=document.getElementById('spaningsfraga').value;
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:CLAUDE_MODEL,
+        max_tokens:1000,
+        system:`Du är en militär rapportassistent för svenska Försvarsmakten. Din uppgift är att ta emot fri text från en soldat och strukturera den enligt den svenska 7S-modellen för MRPAS-rapportering.
+Spaningsfrågan att besvara: "${spaningsfraga||'Ej angiven'}"
+Svara ENDAST med ett JSON-objekt i detta exakta format, inga backticks, ingen preamble:
+{"s1":"...","s2":"...","s3":"...","s4":"...","s5":"...","s6":"...","s7":"..."}
+s1=Situation, s2=Styrka, s3=Stridsvärde, s4=Sammansättning, s5=Stöd, s6=Samband, s7=Speciellt.
+Skriv militärt, kortfattat och faktabaserat på svenska. Använd bara information som finns i texten.`,
+        messages:[{role:'user',content:txt}]
+      })
+    });
+    const data=await resp.json();
+    const raw=data.content.map(b=>b.text||'').join('');
+    const clean=raw.replace(/```json|```/g,'').trim();
+    const obj=JSON.parse(clean);
+    ['s1','s2','s3','s4','s5','s6','s7'].forEach(k=>{if(obj[k]) document.getElementById(k).value=obj[k];});
+    status.textContent='✓ 7S-fält genererade — granska och redigera vid behov';
+    showToast('AI-rapport genererad!');
+  }catch(e){
+    status.textContent='Fel: '+e.message;
+    showToast('AI-fel: kontrollera anslutning');
+  }
+  btn.disabled=false;btn.textContent='Generera 7S-rapport med AI';btn.classList.remove('loading-dots');
+}
+
+function buildReport(){
+  const v=id=>document.getElementById(id)?.value||'';
+  const d=new Date();
+  let r='';
+  r+='═══════════════════════════════\n';
+  r+='       MRPAS RAPPORT — 7S\n';
+  r+='═══════════════════════════════\n';
+  r+=`Datum:      ${v('meta-date')}\n`;
+  r+=`Tid:        ${v('meta-time')}\n`;
+  r+=`Rapportör:  ${v('meta-name')}\n`;
+  r+=`Enhet:      ${v('meta-unit')}\n`;
+  r+=`Rapport nr: ${v('meta-nr')}\n`;
+  r+=`Batterinivå: ${v('battery')}%\n`;
+  r+=`Höjd:       ${v('altitude')} m ö.h.\n`;
+  const temp=document.getElementById('w-temp').textContent;
+  const wind=document.getElementById('w-wind').textContent;
+  const vis=document.getElementById('w-vis').textContent;
+  const desc=document.getElementById('w-desc').textContent;
+  r+=`Väder:      ${temp}, Vind ${wind}, Sikt ${vis} (${desc})\n`;
+  r+='───────────────────────────────\n';
+  r+=`SPANINGSFRÅGA:\n${v('spaningsfraga')}\n`;
+  r+='───────────────────────────────\n';
+  r+='7S-RAPPORT:\n\n';
+  r+=`[S1 - SITUATION]\n${v('s1')}\n\n`;
+  r+=`[S2 - STYRKA]\n${v('s2')}\n\n`;
+  r+=`[S3 - STRIDSVÄRDE]\n${v('s3')}\n\n`;
+  r+=`[S4 - SAMMANSÄTTNING]\n${v('s4')}\n\n`;
+  r+=`[S5 - STÖD]\n${v('s5')}\n\n`;
+  r+=`[S6 - SAMBAND]\n${v('s6')}\n\n`;
+  r+=`[S7 - SPECIELLT]\n${v('s7')}\n`;
+  if(pois.length){
+    r+='───────────────────────────────\n';
+    r+='PUNKTER AV INTRESSE (POI):\n';
+    pois.forEach((p,i)=>r+=`${i+1}. ${p.name} — ${p.lat}, ${p.lng}\n`);
+  }
+  r+='═══════════════════════════════\n';
+  return r;
+}
+
+function sendSignal(){
+  const txt=buildReport();
+  const enc=encodeURIComponent(txt);
+  const url='sgnl://send?text='+enc;
+  window.location.href=url;
+  setTimeout(()=>{
+    if(navigator.share){navigator.share({title:'MRPAS Rapport',text:txt}).catch(()=>{})}
+    else{navigator.clipboard.writeText(txt).then(()=>showToast('Kopierat — öppna Signal manuellt')).catch(()=>showToast('Öppna Signal och klistra in rapporten'))}
+  },800);
+}
+
+function copyReport(){
+  const txt=buildReport();
+  navigator.clipboard.writeText(txt).then(()=>showToast('Rapport kopierad till urklipp!')).catch(()=>showToast('Kunde ej kopiera'));
+}
+
+function printReport(){
+  const txt=buildReport();
+  const w=window.open('','_blank');
+  w.document.write(`<pre style="font-family:monospace;font-size:13px;padding:20px">${txt}</pre>`);
+  w.print();
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
