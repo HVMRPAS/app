@@ -2,462 +2,634 @@
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MRPAS Rapport</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>MRPAS 7S Rapport</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#0a0e14;color:#c9d1d9;font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;min-height:100vh}
-.app{max-width:700px;margin:0 auto;padding:12px}
-.header{background:#0d1117;border:1px solid #1f6feb;border-radius:8px;padding:14px 18px;margin-bottom:12px;display:flex;align-items:center;gap:12px}
-.header-icon{width:40px;height:40px;background:#1f6feb22;border:1px solid #1f6feb;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px}
-.header h1{font-size:16px;font-weight:600;color:#e6edf3;letter-spacing:.5px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#0a0e14;color:#c9d1d9;font-family:'Segoe UI',system-ui,sans-serif;font-size:15px;min-height:100vh;padding-bottom:40px}
+.app{max-width:680px;margin:0 auto;padding:10px}
+.header{background:#0d1117;border:1px solid #1f6feb;border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.hicon{width:42px;height:42px;background:#1f6feb22;border:1px solid #1f6feb;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.header h1{font-size:15px;font-weight:600;color:#e6edf3;letter-spacing:.4px}
 .header p{font-size:11px;color:#7d8590;margin-top:2px}
-.section{background:#0d1117;border:1px solid #21262d;border-radius:8px;margin-bottom:10px;overflow:hidden}
-.section-header{background:#161b22;padding:10px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #21262d;cursor:pointer;user-select:none}
-.section-header h2{font-size:12px;font-weight:600;color:#8b949e;letter-spacing:1px;text-transform:uppercase;flex:1}
-.section-header .badge{background:#1f6feb22;color:#58a6ff;font-size:10px;padding:2px 7px;border-radius:10px;border:1px solid #1f6feb44}
-.section-body{padding:12px 14px}
-.chevron{color:#7d8590;font-size:12px;transition:transform .2s}
-.chevron.open{transform:rotate(180deg)}
-label{display:block;font-size:11px;color:#7d8590;margin-bottom:4px;margin-top:10px;text-transform:uppercase;letter-spacing:.5px}
+.section{background:#0d1117;border:1px solid #21262d;border-radius:10px;margin-bottom:10px;overflow:hidden}
+.shdr{background:#161b22;padding:12px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #21262d;cursor:pointer;user-select:none}
+.shdr h2{font-size:11px;font-weight:600;color:#8b949e;letter-spacing:1px;text-transform:uppercase;flex:1}
+.badge{background:#1f6feb22;color:#58a6ff;font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid #1f6feb44;white-space:nowrap}
+.badge.warn{background:#d2992222;color:#d29922;border-color:#d2992244}
+.sbody{padding:12px 14px}
+.chev{color:#7d8590;font-size:11px;transition:transform .2s;flex-shrink:0}
+.chev.open{transform:rotate(180deg)}
+label{display:block;font-size:11px;color:#7d8590;margin-bottom:4px;margin-top:12px;text-transform:uppercase;letter-spacing:.5px}
 label:first-child{margin-top:0}
-input,textarea,select{width:100%;background:#161b22;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;padding:8px 10px;font-size:13px;font-family:inherit;resize:vertical}
+input,textarea,select{width:100%;background:#161b22;border:1px solid #30363d;border-radius:8px;color:#c9d1d9;padding:10px 12px;font-size:15px;font-family:inherit;resize:vertical;-webkit-appearance:none}
 input:focus,textarea:focus,select:focus{outline:none;border-color:#1f6feb;background:#0d1117}
-textarea{min-height:70px}
+textarea{min-height:68px;line-height:1.5}
+select option{background:#161b22}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-.ai-box{background:#0a1628;border:1px solid #1f6feb44;border-radius:6px;padding:10px;margin-top:8px}
-.ai-box p{font-size:11px;color:#58a6ff;margin-bottom:6px}
-.ai-btn{background:#1f6feb;color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:13px;cursor:pointer;width:100%;font-weight:600;letter-spacing:.3px}
-.ai-btn:hover{background:#388bfd}
-.ai-btn:disabled{background:#21262d;color:#7d8590;cursor:not-allowed}
-.ai-status{font-size:11px;color:#7d8590;margin-top:6px;text-align:center;min-height:16px}
-.field-row{display:flex;gap:6px;align-items:flex-end}
-.field-row input{flex:1}
-.field-row button{background:#21262d;border:1px solid #30363d;color:#c9d1d9;border-radius:6px;padding:8px 12px;cursor:pointer;font-size:13px;white-space:nowrap}
-.field-row button:hover{background:#30363d}
-#map{height:280px;border-radius:6px;border:1px solid #30363d;margin-top:8px}
-.poi-list{margin-top:8px}
-.poi-item{background:#161b22;border:1px solid #21262d;border-radius:6px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px;font-size:12px}
-.poi-item .poi-coords{color:#58a6ff;font-family:monospace;font-size:11px}
-.poi-item .poi-name{flex:1;color:#c9d1d9}
-.poi-item button{background:none;border:none;color:#f85149;cursor:pointer;font-size:14px;padding:2px}
-.weather-row{display:flex;gap:8px;align-items:center;margin-top:6px}
-.weather-pill{background:#161b22;border:1px solid #21262d;border-radius:6px;padding:6px 10px;font-size:12px;display:flex;flex-direction:column;gap:2px;flex:1;text-align:center}
-.weather-pill span:first-child{color:#7d8590;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
-.weather-pill span:last-child{color:#c9d1d9;font-weight:500}
-.weather-btn{background:#21262d;border:1px solid #30363d;color:#58a6ff;border-radius:6px;padding:7px 12px;cursor:pointer;font-size:12px}
-.weather-btn:hover{background:#30363d}
-.img-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.img-thumb{width:72px;height:72px;object-fit:cover;border-radius:6px;border:1px solid #30363d}
-.img-add{width:72px;height:72px;background:#161b22;border:1px dashed #30363d;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:24px;color:#7d8590}
-.img-add:hover{border-color:#58a6ff;color:#58a6ff}
-.submit-row{display:flex;gap:8px;margin-top:12px}
-.btn-signal{background:#3a76f8;border:none;color:#fff;border-radius:8px;padding:12px 18px;font-size:14px;font-weight:600;cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:8px}
-.btn-signal:hover{background:#2563eb}
-.btn-copy{background:#21262d;border:1px solid #30363d;color:#c9d1d9;border-radius:8px;padding:12px 18px;font-size:14px;cursor:pointer;flex:1}
-.btn-copy:hover{background:#30363d}
-.btn-print{background:#21262d;border:1px solid #30363d;color:#c9d1d9;border-radius:8px;padding:12px 18px;font-size:14px;cursor:pointer}
-.btn-print:hover{background:#30363d}
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1f6feb;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9999}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.hint{font-size:11px;color:#444c56;margin-top:3px;font-style:italic;line-height:1.4}
+.tip{background:#0a1628;border-left:3px solid #1f6feb;border-radius:0 6px 6px 0;padding:8px 12px;font-size:12px;color:#58a6ff;margin-bottom:10px;line-height:1.5}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.chip{background:#161b22;border:1px solid #30363d;color:#8b949e;font-size:12px;padding:6px 11px;border-radius:6px;cursor:pointer;user-select:none;transition:all .15s}
+.chip.sel{background:#1f6feb22;border-color:#1f6feb;color:#58a6ff}
+.chip.multi.sel{background:#1f6feb22;border-color:#1f6feb;color:#58a6ff}
+.clabel{font-size:10px;color:#444c56;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;margin-top:10px}
+.trow{display:flex;gap:6px;flex-wrap:wrap}
+.tog{background:#161b22;border:1px solid #30363d;color:#8b949e;font-size:13px;padding:8px 14px;border-radius:8px;cursor:pointer;user-select:none;transition:all .15s;flex:1;text-align:center;min-width:55px}
+.tog.sel{background:#1f6feb22;border-color:#1f6feb;color:#58a6ff;font-weight:600}
+.nrow{display:flex;align-items:center;gap:8px;margin-top:4px}
+.nbtn{background:#21262d;border:1px solid #30363d;color:#c9d1d9;border-radius:8px;width:42px;height:42px;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
+.nbtn:active{background:#30363d}
+.nval{background:#161b22;border:1px solid #30363d;border-radius:8px;color:#e6edf3;font-size:18px;font-weight:600;text-align:center;width:70px;padding:8px 4px}
+.nunit{font-size:12px;color:#7d8590}
+#map{height:260px;border-radius:8px;border:1px solid #30363d;margin-top:8px}
+.poi-item{background:#161b22;border:1px solid #21262d;border-radius:8px;padding:8px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px;font-size:13px}
+.poi-coord{color:#58a6ff;font-family:monospace;font-size:11px;flex-shrink:0}
+.poi-nm{flex:1;color:#c9d1d9}
+.poi-rm{background:none;border:none;color:#f85149;cursor:pointer;font-size:16px;padding:2px 6px}
+.frow{display:flex;gap:6px;align-items:flex-end;margin-top:8px}
+.frow input{flex:1}
+.bsm{background:#21262d;border:1px solid #30363d;color:#c9d1d9;border-radius:8px;padding:10px 14px;cursor:pointer;font-size:14px;white-space:nowrap}
+.bsm:active{background:#30363d}
+.wrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.wpill{background:#161b22;border:1px solid #21262d;border-radius:8px;padding:8px 10px;font-size:12px;display:flex;flex-direction:column;gap:3px;flex:1;min-width:65px;text-align:center}
+.wpill span:first-child{color:#7d8590;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.wpill span:last-child{color:#c9d1d9;font-weight:600}
+.iggrid{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.ithumb{width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #30363d}
+.iadd{width:80px;height:80px;background:#161b22;border:2px dashed #30363d;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:28px;color:#7d8590}
+.iadd:active{border-color:#58a6ff;color:#58a6ff}
+.batbar{height:6px;background:#21262d;border-radius:3px;margin-top:6px;overflow:hidden}
+.batfill{height:100%;border-radius:3px;transition:width .3s,background .3s}
+.submit-area{margin-top:14px}
+.btnprim{background:#1f6feb;border:none;color:#fff;border-radius:10px;padding:14px;font-size:15px;font-weight:600;cursor:pointer;width:100%;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btnprim:active{background:#388bfd}
+.btnrow{display:flex;gap:8px}
+.btnsec{background:#21262d;border:1px solid #30363d;color:#c9d1d9;border-radius:10px;padding:13px;font-size:14px;cursor:pointer;flex:1;text-align:center}
+.btnsec:active{background:#30363d}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1f6feb;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9999;white-space:nowrap}
 .toast.show{opacity:1}
-.s7-field{margin-bottom:8px}
-.s7-label{font-size:11px;color:#58a6ff;text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
-.s7-val{background:#161b22;border:1px solid #21262d;border-radius:6px;padding:7px 10px;font-size:13px;color:#c9d1d9;width:100%;resize:vertical}
-.loading-dots::after{content:'';animation:dots 1.2s infinite}
-@keyframes dots{0%{content:''}33%{content:'.'}66%{content:'..'}100%{content:'...'}}
-.battery-bar{height:8px;background:#21262d;border-radius:4px;margin-top:4px;overflow:hidden}
-.battery-fill{height:100%;border-radius:4px;transition:width .3s,background .3s}
+.coord-sys{font-size:11px;color:#58a6ff;margin-top:4px}
 </style>
 </head>
 <body>
 <div class="app">
+
 <div class="header">
-  <div class="header-icon">🎯</div>
+  <div class="hicon">🎯</div>
   <div>
-    <h1>MRPAS Rapport — 7S Modellen</h1>
-    <p id="ts-display">Laddar tid...</p>
+    <h1>Spaningsrapport 7S — MRPAS</h1>
+    <p id="ts">Laddar...</p>
   </div>
 </div>
 
-<!-- META -->
+<!-- META / SPANINGSFRÅGA -->
 <div class="section">
-  <div class="section-header" onclick="toggle(this)">
-    <h2>Rapportmeta</h2>
-    <span class="badge">Obligatorisk</span>
-    <span class="chevron open">▼</span>
+  <div class="shdr" onclick="tog(this)">
+    <h2>📋 Rapportmeta</h2><span class="badge">Obligatorisk</span><span class="chev open">▼</span>
   </div>
-  <div class="section-body">
+  <div class="sbody">
     <div class="grid2">
-      <div><label>Namn / Identitet</label><input id="meta-name" placeholder="ex. Soldat Johansson"></div>
-      <div><label>Enhet / Förband</label><input id="meta-unit" placeholder="ex. 1./I 19"></div>
+      <div><label>Sagesman / Sign</label><input id="m-name" placeholder="ex. Jgr Johansson / EA"></div>
+      <div><label>Enhet / Förband</label><input id="m-unit" placeholder="ex. 1./I 19"></div>
     </div>
-    <div class="grid3">
-      <div><label>Datum</label><input type="date" id="meta-date"></div>
-      <div><label>Tid (lokal)</label><input type="time" id="meta-time"></div>
-      <div><label>Rapport nr</label><input id="meta-nr" placeholder="ex. 001"></div>
+    <div class="grid2">
+      <div><label>Mottagare</label><input id="m-recv" placeholder="ex. 1.Plt chf / S2"></div>
+      <div><label>Rapport nr</label><input id="m-nr" placeholder="001"></div>
     </div>
     <label>Spaningsfråga</label>
     <textarea id="spaningsfraga" placeholder="Vilken spaningsfråga besvarar denna rapport?"></textarea>
   </div>
 </div>
 
-<!-- AI INPUT -->
+<!-- S1: STUND -->
 <div class="section">
-  <div class="section-header" onclick="toggle(this)">
-    <h2>AI-assisterad inmatning</h2>
-    <span class="badge">Claude</span>
-    <span class="chevron open">▼</span>
+  <div class="shdr" onclick="tog(this)">
+    <h2>S1 — Stund</h2><span class="badge">Tidpunkt för observation</span><span class="chev open">▼</span>
   </div>
-  <div class="section-body">
-    <label>Beskriv situationen fritt</label>
-    <textarea id="ai-input" placeholder="Beskriv vad du observerat, i ditt eget språk. Claude fyller i 7S-fälten automatiskt..." style="min-height:100px"></textarea>
-    <div class="ai-box">
-      <p>🤖 Claude analyserar din text och populerar 7S-modellens fält</p>
-      <button class="ai-btn" id="ai-btn" onclick="runAI()">Generera 7S-rapport med AI</button>
-      <div class="ai-status" id="ai-status"></div>
+  <div class="sbody">
+    <div class="tip">Tidsnummer = 6 siffror: DD TT MM (dag, timme, minut). Ex: onsdag 04 mars kl 21:15 → <strong>042115</strong>. Ange TID FÖR OBSERVATIONEN, inte rapporteringstillfället.</div>
+    <div class="grid2">
+      <div>
+        <label>Tidsnummer (DDTTMM)</label>
+        <input id="s1-tidsnr" placeholder="ex. 042115" maxlength="6" inputmode="numeric">
+        <p class="hint">2 siffror dag + 2 timme + 2 minut</p>
+      </div>
+      <div>
+        <label>Datum & tid (lokal)</label>
+        <input type="datetime-local" id="s1-dt" oninput="genTidsnr()">
+      </div>
     </div>
   </div>
 </div>
 
-<!-- 7S FIELDS -->
+<!-- S2: STÄLLE -->
 <div class="section">
-  <div class="section-header" onclick="toggle(this)">
-    <h2>7S Modellen</h2>
-    <span class="badge">Rapport</span>
-    <span class="chevron open">▼</span>
+  <div class="shdr" onclick="tog(this)">
+    <h2>S2 — Ställe</h2><span class="badge">Plats för observation</span><span class="chev open">▼</span>
   </div>
-  <div class="section-body" id="s7-body">
-    <div class="s7-field"><div class="s7-label">S1 — Situation</div><textarea class="s7-val" id="s1" placeholder="Beskriv den övergripande situationen..."></textarea></div>
-    <div class="s7-field"><div class="s7-label">S2 — Styrka</div><textarea class="s7-val" id="s2" placeholder="Fiendens/observerade styrkors storlek och sammansättning..."></textarea></div>
-    <div class="s7-field"><div class="s7-label">S3 — Stridsvärde</div><textarea class="s7-val" id="s3" placeholder="Bedömning av stridsvärde och kapacitet..."></textarea></div>
-    <div class="s7-field"><div class="s7-label">S4 — Sammansättning</div><textarea class="s7-val" id="s4" placeholder="Förbandstyper, fordon, utrustning..."></textarea></div>
-    <div class="s7-field"><div class="s7-label">S5 — Stöd</div><textarea class="s7-val" id="s5" placeholder="Logistik, underhåll, eldunderstöd..."></textarea></div>
-    <div class="s7-field"><div class="s7-label">S6 — Samband</div><textarea class="s7-val" id="s6" placeholder="Kommunikation, ledning, C2-struktur..."></textarea></div>
-    <div class="s7-field"><div class="s7-label">S7 — Speciellt</div><textarea class="s7-val" id="s7" placeholder="Övrigt av spaningsvärde, avvikelser, hot..."></textarea></div>
+  <div class="sbody">
+    <div class="tip">Använd koordinater — INTE utgångspunkter (UPK), då dessa kan röja det egna systemet om meddelandet snappas upp.</div>
+    <div class="clabel">Koordinatsystem</div>
+    <div class="trow" id="coord-sys">
+      <div class="tog sel" onclick="selTog(this,'coord-sys')">MGRS</div>
+      <div class="tog" onclick="selTog(this,'coord-sys')">WGS84</div>
+      <div class="tog" onclick="selTog(this,'coord-sys')">RT90</div>
+      <div class="tog" onclick="selTog(this,'coord-sys')">SWEREF99</div>
+    </div>
+    <label>Koordinater</label>
+    <input id="s2-coord" placeholder="ex. 34VCL3330680074 (MGRS)">
+    <label>Platsbeskrivning (komplement)</label>
+    <input id="s2-desc" placeholder="ex. NV om bron vid Berga, i trädridån">
+    <button class="bsm" style="width:100%;margin-top:10px" onclick="getGPS()">📍 Hämta GPS-koordinater</button>
+    <p class="coord-sys" id="coord-hint"></p>
   </div>
 </div>
 
-<!-- SENSOR/ENV -->
+<!-- S3: STYRKA -->
 <div class="section">
-  <div class="section-header" onclick="toggle(this)">
-    <h2>Sensor & Miljö</h2>
-    <span class="badge">Data</span>
-    <span class="chevron open">▼</span>
+  <div class="shdr" onclick="tog(this)">
+    <h2>S3 — Styrka</h2><span class="badge">Antal</span><span class="chev open">▼</span>
   </div>
-  <div class="section-body">
+  <div class="sbody">
+    <div class="tip">Var exakt — ange antal, eller "minst X" om du misstänker fler. Undvik förbandsstorlekar som "kompani" om du inte kan bekräfta det.</div>
+    <label>Antal personal</label>
+    <div class="nrow">
+      <div class="nbtn" onclick="adj('s3-pers',-1)">−</div>
+      <input class="nval" id="s3-pers" type="number" value="0" min="0">
+      <span class="nunit">soldater</span>
+      <div class="nbtn" onclick="adj('s3-pers',1)">+</div>
+    </div>
+    <label>Antal fordon</label>
+    <div class="nrow">
+      <div class="nbtn" onclick="adj('s3-veh',-1)">−</div>
+      <input class="nval" id="s3-veh" type="number" value="0" min="0">
+      <span class="nunit">fordon</span>
+      <div class="nbtn" onclick="adj('s3-veh',1)">+</div>
+    </div>
+    <div class="clabel">Säkerhet i uppgiften</div>
+    <div class="trow" id="s3-cert">
+      <div class="tog" onclick="selTog(this,'s3-cert')">Säkert (räknat)</div>
+      <div class="tog" onclick="selTog(this,'s3-cert')">Minst X</div>
+      <div class="tog" onclick="selTog(this,'s3-cert')">Bedömt</div>
+      <div class="tog" onclick="selTog(this,'s3-cert')">Okänt</div>
+    </div>
+    <label>Komplettering</label>
+    <textarea id="s3-text" placeholder="ex. 3 pansarfordon och minst 20 avsuttna soldater..."></textarea>
+  </div>
+</div>
+
+<!-- S4: SLAG -->
+<div class="section">
+  <div class="shdr" onclick="tog(this)">
+    <h2>S4 — Slag</h2><span class="badge">Typ av fiende/objekt</span><span class="chev open">▼</span>
+  </div>
+  <div class="sbody">
+    <div class="tip">Beskriv så specifikt du kan — hjul/band, antal axlar, torn, beväpning, bepansring. Gissa inte: om du är osäker, beskriv det du ser utan att namnge fordonstypen.</div>
+    <div class="clabel">Typ av trupp</div>
+    <div class="chips" id="s4-trupp">
+      <div class="chip multi" onclick="togChip(this)">Infanteri (avsuttet)</div>
+      <div class="chip multi" onclick="togChip(this)">Pansarinfanteri</div>
+      <div class="chip multi" onclick="togChip(this)">Pansartrupperna</div>
+      <div class="chip multi" onclick="togChip(this)">Artilleri</div>
+      <div class="chip multi" onclick="togChip(this)">Luftvärn</div>
+      <div class="chip multi" onclick="togChip(this)">Ingenjör</div>
+      <div class="chip multi" onclick="togChip(this)">Logistik/Underhåll</div>
+      <div class="chip multi" onclick="togChip(this)">Spaning/ISTAR</div>
+      <div class="chip multi" onclick="togChip(this)">Special</div>
+      <div class="chip multi" onclick="togChip(this)">Civil/Okänd</div>
+    </div>
+    <div class="clabel">Fordonstyp</div>
+    <div class="chips" id="s4-fordon">
+      <div class="chip multi" onclick="togChip(this)">Personbilar (hjul)</div>
+      <div class="chip multi" onclick="togChip(this)">Lastbilar (hjul)</div>
+      <div class="chip multi" onclick="togChip(this)">Terrängbilar (hjul)</div>
+      <div class="chip multi" onclick="togChip(this)">Pansarbandvagn (band)</div>
+      <div class="chip multi" onclick="togChip(this)">Pansarskyttevagn (band)</div>
+      <div class="chip multi" onclick="togChip(this)">Stridsvagn (band)</div>
+      <div class="chip multi" onclick="togChip(this)">Artilleripjäs</div>
+      <div class="chip multi" onclick="togChip(this)">Helikopter</div>
+      <div class="chip multi" onclick="togChip(this)">Drönare</div>
+      <div class="chip multi" onclick="togChip(this)">Fartyg/Båt</div>
+    </div>
+    <label>Beväpning observerad</label>
+    <div class="chips" id="s4-bev">
+      <div class="chip multi" onclick="togChip(this)">Handeldvapen</div>
+      <div class="chip multi" onclick="togChip(this)">Kulspruta/AG</div>
+      <div class="chip multi" onclick="togChip(this)">Pansarvärnsvapen</div>
+      <div class="chip multi" onclick="togChip(this)">Granatkastare</div>
+      <div class="chip multi" onclick="togChip(this)">Kanon/eldrör</div>
+      <div class="chip multi" onclick="togChip(this)">Luftvärnsrobot</div>
+      <div class="chip multi" onclick="togChip(this)">Ingen synlig</div>
+    </div>
+    <label>Detaljbeskrivning av slag</label>
+    <textarea id="s4-text" placeholder="Beskriv fordon du inte kan identifiera: hjul/band, antal axlar, tornstorlek, luckor, antenner, skador mm..."></textarea>
+  </div>
+</div>
+
+<!-- S5: SYSSELSÄTTNING -->
+<div class="section">
+  <div class="shdr" onclick="tog(this)">
+    <h2>S5 — Sysselsättning</h2><span class="badge">Fiendens verksamhet</span><span class="chev open">▼</span>
+  </div>
+  <div class="sbody">
+    <div class="tip">Vad gör fienden? Är de under transport, stillastående, gräver in sig, tankar, reparerar? Sysselsättning ger underrättelsebefälet viktig ledtråd om motståndarens avsikt.</div>
+    <div class="clabel">Rörelse</div>
+    <div class="chips" id="s5-ror">
+      <div class="chip" onclick="selChip(this,'s5-ror')">Under marsch/transport</div>
+      <div class="chip" onclick="selChip(this,'s5-ror')">Stillastående</div>
+      <div class="chip" onclick="selChip(this,'s5-ror')">Återdragande</div>
+      <div class="chip" onclick="selChip(this,'s5-ror')">Luftburen rörelse</div>
+    </div>
+    <div class="clabel">Rörelseriktning</div>
+    <div class="chips" id="s5-rikt">
+      <div class="chip" onclick="selChip(this,'s5-rikt')">N</div>
+      <div class="chip" onclick="selChip(this,'s5-rikt')">NO</div>
+      <div class="chip" onclick="selChip(this,'s5-rikt')">O</div>
+      <div class="chip" onclick="selChip(this,'s5-rikt')">SO</div>
+      <div class="chip" onclick="selChip(this,'s5-rikt')">S</div>
+      <div class="chip" onclick="selChip(this,'s5-rikt')">SV</div>
+      <div class="chip" onclick="selChip(this,'s5-rikt')">V</div>
+      <div class="chip" onclick="selChip(this,'s5-rikt')">NV</div>
+    </div>
+    <div class="clabel">Verksamhet</div>
+    <div class="chips" id="s5-verk">
+      <div class="chip multi" onclick="togChip(this)">Spanar</div>
+      <div class="chip multi" onclick="togChip(this)">Patrullerar</div>
+      <div class="chip multi" onclick="togChip(this)">Rastar/väntar</div>
+      <div class="chip multi" onclick="togChip(this)">Gräver in/befäster</div>
+      <div class="chip multi" onclick="togChip(this)">Tankar drivmedel</div>
+      <div class="chip multi" onclick="togChip(this)">Fyller på amm.</div>
+      <div class="chip multi" onclick="togChip(this)">Reparerar fordon</div>
+      <div class="chip multi" onclick="togChip(this)">Evakuerar personal</div>
+      <div class="chip multi" onclick="togChip(this)">Minerar/spärrar</div>
+      <div class="chip multi" onclick="togChip(this)">Skjuter/beskjuter</div>
+    </div>
+    <label>Detaljbeskrivning</label>
+    <textarea id="s5-text" placeholder="ex. Truppen förefaller gräva ned sig i buskagen, exakt verksamhet kan inte avgöras p.g.a. dålig insyn. Kan inte uteslutas att minor placeras ut."></textarea>
+  </div>
+</div>
+
+<!-- S6: SYMBOL -->
+<div class="section">
+  <div class="shdr" onclick="tog(this)">
+    <h2>S6 — Symbol</h2><span class="badge">Märkning, tecken, färg</span><span class="chev open">▼</span>
+  </div>
+  <div class="sbody">
+    <div class="tip">Symboler hjälper underrättelsepersonal att identifiera och skilja förband åt i olika rapporter. Rapportera allt — flaggor, nummer, färger, skador, avvikande utrustning.</div>
+    <div class="clabel">Fordonsmarkering</div>
+    <div class="chips" id="s6-mark">
+      <div class="chip multi" onclick="togChip(this)">Taktiska tecken</div>
+      <div class="chip multi" onclick="togChip(this)">Registreringsnummer</div>
+      <div class="chip multi" onclick="togChip(this)">Flagga/emblem</div>
+      <div class="chip multi" onclick="togChip(this)">Färgmarkering</div>
+      <div class="chip multi" onclick="togChip(this)">Skador/avvikelser</div>
+      <div class="chip multi" onclick="togChip(this)">Ingen märkning</div>
+    </div>
+    <div class="clabel">Kamouflagefärg/finish</div>
+    <div class="chips" id="s6-kamo">
+      <div class="chip" onclick="selChip(this,'s6-kamo')">Olivgrönt</div>
+      <div class="chip" onclick="selChip(this,'s6-kamo')">Sand/öken</div>
+      <div class="chip" onclick="selChip(this,'s6-kamo')">Vinterkamoflage</div>
+      <div class="chip" onclick="selChip(this,'s6-kamo')">Skogskamoflage</div>
+      <div class="chip" onclick="selChip(this,'s6-kamo')">Grå</div>
+      <div class="chip" onclick="selChip(this,'s6-kamo')">Svart</div>
+      <div class="chip" onclick="selChip(this,'s6-kamo')">Omålat/civilt</div>
+    </div>
+    <label>Specifika symboler, nummer, färger</label>
+    <textarea id="s6-text" placeholder="ex. Vit Z-symbol på fordonssidor, registreringsnummer 'RF-1234', skada på höger bakhjul..."></textarea>
+  </div>
+</div>
+
+<!-- S7: SAGESMAN -->
+<div class="section">
+  <div class="shdr" onclick="tog(this)">
+    <h2>S7 — Sagesman</h2><span class="badge">Vem observerade</span><span class="chev open">▼</span>
+  </div>
+  <div class="sbody">
+    <div class="tip">Viktig vid följdfrågor från staben. Ange vem som gjort observationen — individ eller enhetsbeteckning. Skilj på direktobservation och andrahandsuppgifter.</div>
+    <div class="clabel">Observationstyp</div>
+    <div class="trow" id="s7-obstype">
+      <div class="tog" onclick="selTog(this,'s7-obstype')">Direktobservation</div>
+      <div class="tog" onclick="selTog(this,'s7-obstype')">Andrahandsuppgift</div>
+      <div class="tog" onclick="selTog(this,'s7-obstype')">Sensor/teknik</div>
+    </div>
+    <label>Sagesman (om annan än rapportör)</label>
+    <input id="s7-name" placeholder="ex. Ortsbefolkning, Annan patrull, Drönare EA-3">
+    <label>Komplettering</label>
+    <textarea id="s7-text" placeholder="ex. Observation gjord av rapportörens patrull från spaningspost. Bekräftas av EA och EB."></textarea>
+  </div>
+</div>
+
+<!-- S8: SEDAN (vid behov) -->
+<div class="section">
+  <div class="shdr" onclick="tog(this)">
+    <h2>S8 — Sedan</h2><span class="badge warn">Vid behov</span><span class="chev open">▼</span>
+  </div>
+  <div class="sbody">
+    <div class="tip">Vad gör enheten härnäst? Ger chefen lägesuppfattning och möjliggör följdfrågor. Viktigt om enheten inte hör av sig igen.</div>
+    <div class="clabel">Åtgärd efter observation</div>
+    <div class="chips" id="s8-atg">
+      <div class="chip" onclick="selChip(this,'s8-atg')">Fortsätter patrull enl. order</div>
+      <div class="chip" onclick="selChip(this,'s8-atg')">Återgår till bas</div>
+      <div class="chip" onclick="selChip(this,'s8-atg')">Håller kvar och observerar</div>
+      <div class="chip" onclick="selChip(this,'s8-atg')">Följer efter objekt</div>
+      <div class="chip" onclick="selChip(this,'s8-atg')">Väntar order</div>
+    </div>
+    <label>Detaljerat</label>
+    <textarea id="s8-text" placeholder="ex. Fortsätter PTR mot RFP 3 enl. order. ETA 1430."></textarea>
+  </div>
+</div>
+
+<!-- SENSOR & MILJÖ -->
+<div class="section">
+  <div class="shdr" onclick="tog(this)">
+    <h2>⚡ Sensor & Miljö</h2><span class="badge">Tilläggsdata</span><span class="chev open">▼</span>
+  </div>
+  <div class="sbody">
     <div class="grid2">
       <div>
         <label>Batterinivå (%)</label>
-        <input type="number" id="battery" min="0" max="100" placeholder="ex. 72" oninput="updateBattery()">
-        <div class="battery-bar"><div class="battery-fill" id="battery-fill" style="width:0%"></div></div>
+        <input type="number" id="battery" min="0" max="100" placeholder="ex. 72" oninput="updBat()">
+        <div class="batbar"><div class="batfill" id="batfill" style="width:0%"></div></div>
       </div>
       <div>
         <label>Höjd (m ö.h.)</label>
         <input type="number" id="altitude" placeholder="ex. 245">
-        <button onclick="getGPS()" style="margin-top:6px;width:100%;background:#21262d;border:1px solid #30363d;color:#58a6ff;border-radius:6px;padding:6px;cursor:pointer;font-size:12px">📍 Hämta GPS-position</button>
       </div>
     </div>
-    <label>Väder</label>
-    <div class="weather-row">
-      <div class="weather-pill"><span>Temp</span><span id="w-temp">—</span></div>
-      <div class="weather-pill"><span>Vind</span><span id="w-wind">—</span></div>
-      <div class="weather-pill"><span>Sikt</span><span id="w-vis">—</span></div>
-      <div class="weather-pill"><span>Beskr.</span><span id="w-desc">—</span></div>
-      <button class="weather-btn" onclick="fetchWeather()">🌤 Hämta</button>
+    <label>Väder (auto eller manuellt)</label>
+    <div class="wrow">
+      <div class="wpill"><span>Temp</span><span id="w-temp">—</span></div>
+      <div class="wpill"><span>Vind</span><span id="w-wind">—</span></div>
+      <div class="wpill"><span>Sikt</span><span id="w-vis">—</span></div>
+      <div class="wpill"><span>Typ</span><span id="w-desc">—</span></div>
     </div>
     <div class="grid2" style="margin-top:8px">
-      <div><label>Vindhastighet (m/s)</label><input id="w-wind-manual" placeholder="Manuell inmatning"></div>
-      <div><label>Siktförhållanden</label><input id="w-vis-manual" placeholder="ex. God, Begränsad"></div>
+      <div><label>Vind manuell (m/s)</label><input id="wm-wind" placeholder="ex. 4"></div>
+      <div><label>Sikt manuell</label>
+        <select id="wm-vis">
+          <option value="">Välj...</option>
+          <option>God (>5 km)</option>
+          <option>Måttlig (1–5 km)</option>
+          <option>Begränsad (<1 km)</option>
+          <option>Dimma</option>
+          <option>Snöfall</option>
+        </select>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- MAP -->
+<!-- KARTA & POI -->
 <div class="section">
-  <div class="section-header" onclick="toggle(this)">
-    <h2>Karta & POI</h2>
-    <span class="badge">OpenStreetMap</span>
-    <span class="chevron open">▼</span>
+  <div class="shdr" onclick="tog(this)">
+    <h2>🗺 Karta & POI</h2><span class="badge">OpenStreetMap</span><span class="chev open">▼</span>
   </div>
-  <div class="section-body">
-    <p style="font-size:11px;color:#7d8590">Klicka på kartan för att lägga till punkter av intresse (POI). Zoom och panorera fritt.</p>
+  <div class="sbody">
+    <p class="hint">Klicka på kartan för att markera punkter av intresse. Namnge och tryck Lägg till.</p>
     <div id="map"></div>
-    <div class="field-row" style="margin-top:8px">
-      <input id="poi-name-input" placeholder="Namn på POI (ex. Fordonskolumn, Bro, Eldställning)">
-      <button onclick="addPoiManual()">+ Lägg till</button>
+    <div class="frow">
+      <input id="poi-inp" placeholder="Namn på POI (ex. Bro, Eldst., Ford.)">
+      <button class="bsm" onclick="addPoi()">+ Lägg till</button>
     </div>
-    <div class="poi-list" id="poi-list"></div>
-    <input id="poi-lat" type="hidden"><input id="poi-lng" type="hidden">
+    <div id="poi-list" style="margin-top:8px"></div>
   </div>
 </div>
 
-<!-- IMAGES -->
+<!-- BILDER -->
 <div class="section">
-  <div class="section-header" onclick="toggle(this)">
-    <h2>Bilder</h2>
-    <span class="badge">Media</span>
-    <span class="chevron open">▼</span>
+  <div class="shdr" onclick="tog(this)">
+    <h2>📷 Bilder</h2><span class="badge">Media</span><span class="chev open">▼</span>
   </div>
-  <div class="section-body">
-    <p style="font-size:11px;color:#7d8590;margin-bottom:8px">Bifoga foton från kamera eller galleri.</p>
-    <input type="file" id="img-input" accept="image/*" multiple capture="environment" style="display:none" onchange="handleImages(event)">
-    <div class="img-grid" id="img-grid">
-      <div class="img-add" onclick="document.getElementById('img-input').click()">+</div>
+  <div class="sbody">
+    <p class="hint">Tryck + för kamera eller galleri. Tryck på bild för att ta bort.</p>
+    <input type="file" id="img-inp" accept="image/*" multiple capture="environment" style="display:none" onchange="handleImgs(event)">
+    <div class="iggrid" id="img-grid">
+      <div class="iadd" onclick="document.getElementById('img-inp').click()">+</div>
     </div>
   </div>
 </div>
 
 <!-- SUBMIT -->
-<div class="submit-row">
-  <button class="btn-signal" onclick="sendSignal()">📨 Skicka via Signal</button>
-  <button class="btn-copy" onclick="copyReport()">📋 Kopiera</button>
-  <button class="btn-print" onclick="printReport()">🖨</button>
+<div class="submit-area">
+  <button class="btnprim" onclick="sendSignal()">📨 Skicka via Signal</button>
+  <div class="btnrow">
+    <button class="btnsec" onclick="copyRpt()">📋 Kopiera rapport</button>
+    <button class="btnsec" onclick="printRpt()">🖨 Skriv ut</button>
+  </div>
 </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-const CLAUDE_MODEL = "claude-sonnet-4-20250514";
-let map, clickMarker, pois=[], images=[], pendingLat=null, pendingLng=null;
+let map,clickMk,pois=[],imgs=[],pendLat=null,pendLng=null,curLat=63,curLng=16;
 
-function now(){
-  const d=new Date();
-  document.getElementById('ts-display').textContent=
-    d.toLocaleDateString('sv-SE')+' '+d.toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});
-  const di=document.getElementById('meta-date');
-  const ti=document.getElementById('meta-time');
-  if(!di.value) di.value=d.toISOString().slice(0,10);
-  if(!ti.value) ti.value=d.toTimeString().slice(0,5);
+const d=new Date();
+document.getElementById('ts').textContent=d.toLocaleDateString('sv-SE')+' '+d.toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});
+const dti=document.getElementById('s1-dt');
+if(dti) dti.value=d.toISOString().slice(0,16);
+genTidsnr();
+
+function genTidsnr(){
+  const v=document.getElementById('s1-dt').value;
+  if(!v)return;
+  const dt=new Date(v);
+  const dd=String(dt.getDate()).padStart(2,'0');
+  const hh=String(dt.getHours()).padStart(2,'0');
+  const mm=String(dt.getMinutes()).padStart(2,'0');
+  document.getElementById('s1-tidsnr').value=dd+hh+mm;
 }
-now(); setInterval(()=>document.getElementById('ts-display').textContent=new Date().toLocaleDateString('sv-SE')+' '+new Date().toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'}),30000);
 
-function toggle(hdr){
-  const body=hdr.nextElementSibling;
-  const ch=hdr.querySelector('.chevron');
-  if(body.style.display==='none'){body.style.display='';ch.classList.add('open')}
-  else{body.style.display='none';ch.classList.remove('open')}
-  if(hdr.parentElement.querySelector('#map')&&body.style.display!=='none') setTimeout(()=>map&&map.invalidateSize(),100);
+function tog(hdr){
+  const b=hdr.nextElementSibling,c=hdr.querySelector('.chev');
+  if(b.style.display==='none'){b.style.display='';c.classList.add('open')}
+  else{b.style.display='none';c.classList.remove('open')}
+  if(hdr.parentElement.querySelector('#map')&&b.style.display!=='none')setTimeout(()=>map&&map.invalidateSize(),120);
+}
+
+function selChip(el,grp){
+  document.querySelectorAll(`#${grp} .chip`).forEach(c=>c.classList.remove('sel'));
+  el.classList.toggle('sel');
+}
+function togChip(el){el.classList.toggle('sel')}
+function selTog(el,grp){
+  document.querySelectorAll(`#${grp} .tog`).forEach(t=>t.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function adj(id,d){const el=document.getElementById(id);el.value=Math.max(0,(parseInt(el.value)||0)+d);}
+
+function updBat(){
+  const v=parseInt(document.getElementById('battery').value)||0;
+  const f=document.getElementById('batfill');
+  f.style.width=v+'%';f.style.background=v>50?'#3fb950':v>20?'#d29922':'#f85149';
 }
 
 function initMap(){
-  map=L.map('map').setView([63.0,16.0],5);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:18}).addTo(map);
+  map=L.map('map').setView([curLat,curLng],5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM',maxZoom:18}).addTo(map);
   map.on('click',e=>{
-    pendingLat=e.latlng.lat.toFixed(5);
-    pendingLng=e.latlng.lng.toFixed(5);
-    document.getElementById('poi-lat').value=pendingLat;
-    document.getElementById('poi-lng').value=pendingLng;
-    if(clickMarker) map.removeLayer(clickMarker);
-    clickMarker=L.marker([pendingLat,pendingLng],{icon:L.divIcon({className:'',html:'<div style="background:#f85149;width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 4px #0008"></div>',iconSize:[14,14],iconAnchor:[7,7]})}).addTo(map).bindPopup('Namnge och klicka "Lägg till"').openPopup();
+    pendLat=e.latlng.lat.toFixed(5);pendLng=e.latlng.lng.toFixed(5);
+    if(clickMk)map.removeLayer(clickMk);
+    clickMk=L.marker([pendLat,pendLng],{icon:L.divIcon({className:'',html:'<div style="background:#f85149;width:14px;height:14px;border-radius:50%;border:2px solid #fff"></div>',iconSize:[14,14],iconAnchor:[7,7]})}).addTo(map).bindPopup('Namnge och tryck Lägg till').openPopup();
   });
 }
 initMap();
 
-function addPoiManual(){
-  const nm=document.getElementById('poi-name-input').value.trim()||'POI '+(pois.length+1);
-  const lat=pendingLat||document.getElementById('poi-lat').value;
-  const lng=pendingLng||document.getElementById('poi-lng').value;
-  if(!lat||!lng){showToast('Klicka på kartan för att välja position');return}
-  addPoi(nm,parseFloat(lat),parseFloat(lng));
-  document.getElementById('poi-name-input').value='';
-  pendingLat=null;pendingLng=null;
-  if(clickMarker){map.removeLayer(clickMarker);clickMarker=null;}
+function addPoi(){
+  const nm=document.getElementById('poi-inp').value.trim()||'POI '+(pois.length+1);
+  if(!pendLat){showToast('Klicka på kartan först');return}
+  const mk=L.marker([pendLat,pendLng],{icon:L.divIcon({className:'',html:`<div style="background:#1f6feb;color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid #388bfd;white-space:nowrap">${nm}</div>`,iconAnchor:[0,10]})}).addTo(map).bindPopup(nm);
+  pois.push({id:Date.now(),name:nm,lat:parseFloat(pendLat),lng:parseFloat(pendLng),marker:mk});
+  pendLat=null;pendLng=null;
+  if(clickMk){map.removeLayer(clickMk);clickMk=null;}
+  document.getElementById('poi-inp').value='';
+  renderPois();showToast('POI: '+nm);
 }
-
-function addPoi(name,lat,lng){
-  const id=Date.now();
-  pois.push({id,name,lat,lng});
-  const mk=L.marker([lat,lng],{icon:L.divIcon({className:'',html:`<div style="background:#1f6feb;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;white-space:nowrap;border:1px solid #388bfd;box-shadow:0 1px 4px #0008">${name}</div>`,iconAnchor:[0,10]})}).addTo(map).bindPopup(name);
-  pois[pois.length-1].marker=mk;
-  renderPois();
-}
-
 function renderPois(){
-  const el=document.getElementById('poi-list');
-  el.innerHTML=pois.map((p,i)=>`<div class="poi-item">
-    <span class="poi-name">${p.name}</span>
-    <span class="poi-coords">${p.lat}, ${p.lng}</span>
-    <button onclick="removePoi(${p.id})">✕</button>
-  </div>`).join('');
+  document.getElementById('poi-list').innerHTML=pois.map(p=>`<div class="poi-item"><span class="poi-nm">${p.name}</span><span class="poi-coord">${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}</span><button class="poi-rm" onclick="rmPoi(${p.id})">✕</button></div>`).join('');
 }
+function rmPoi(id){const i=pois.findIndex(p=>p.id===id);if(i>=0){map.removeLayer(pois[i].marker);pois.splice(i,1);renderPois();}}
 
-function removePoi(id){
-  const idx=pois.findIndex(p=>p.id===id);
-  if(idx>=0){map.removeLayer(pois[idx].marker);pois.splice(idx,1);renderPois();}
-}
-
-function getGPS(){
+async function getGPS(){
   if(!navigator.geolocation){showToast('GPS ej tillgänglig');return}
-  navigator.geolocation.getCurrentPosition(pos=>{
-    const {latitude:lat,longitude:lng,altitude}=pos.coords;
-    map.setView([lat,lng],13);
-    pendingLat=lat.toFixed(5);pendingLng=lng.toFixed(5);
-    document.getElementById('poi-lat').value=pendingLat;
-    document.getElementById('poi-lng').value=pendingLng;
-    if(altitude) document.getElementById('altitude').value=Math.round(altitude);
-    showToast('Position hämtad: '+pendingLat+', '+pendingLng);
-  },()=>showToast('Kunde ej hämta GPS-position'));
+  showToast('Hämtar GPS...');
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    curLat=pos.coords.latitude;curLng=pos.coords.longitude;
+    pendLat=curLat.toFixed(5);pendLng=curLng.toFixed(5);
+    map.setView([curLat,curLng],13);
+    if(pos.coords.altitude)document.getElementById('altitude').value=Math.round(pos.coords.altitude);
+    const sys=getTogVal('coord-sys');
+    let coordStr=pendLat+', '+pendLng+' (WGS84 decimal)';
+    document.getElementById('s2-coord').value=coordStr;
+    document.getElementById('coord-hint').textContent='WGS84: '+curLat.toFixed(6)+', '+curLng.toFixed(6)+' — konvertera till MGRS vid behov';
+    showToast('Position hämtad');
+    try{
+      const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${curLat}&longitude=${curLng}&current=temperature_2m,wind_speed_10m,visibility,weather_code&wind_speed_unit=ms`);
+      const data=await r.json();const c=data.current;
+      document.getElementById('w-temp').textContent=c.temperature_2m+'°C';
+      document.getElementById('w-wind').textContent=c.wind_speed_10m+' m/s';
+      document.getElementById('w-vis').textContent=c.visibility>=10000?'God':c.visibility>=1000?'Måttlig':'Dålig';
+      document.getElementById('w-desc').textContent=wCode(c.weather_code);
+    }catch(e){}
+  },()=>showToast('Kunde ej hämta GPS'));
 }
 
-async function fetchWeather(){
-  const lat=pendingLat||document.getElementById('poi-lat').value||63.0;
-  const lng=pendingLng||document.getElementById('poi-lng').value||16.0;
-  try{
-    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,wind_speed_10m,visibility,weather_code&wind_speed_unit=ms`);
-    const d=await r.json();
-    const c=d.current;
-    document.getElementById('w-temp').textContent=c.temperature_2m+'°C';
-    document.getElementById('w-wind').textContent=c.wind_speed_10m+' m/s';
-    document.getElementById('w-vis').textContent=c.visibility>=10000?'God':(c.visibility>=1000?'Måttlig':'Dålig');
-    document.getElementById('w-desc').textContent=weatherCode(c.weather_code);
-    showToast('Väder uppdaterat');
-  }catch(e){showToast('Kunde ej hämta väder')}
+function wCode(c){if(c===0)return'Klart';if(c<=2)return'Halvklart';if(c===3)return'Mulet';if(c<=49)return'Dimma';if(c<=59)return'Duggregn';if(c<=69)return'Regn';if(c<=79)return'Snö';if(c<=82)return'Skurar';return'Åska';}
+
+function handleImgs(e){[...e.target.files].forEach(f=>{const r=new FileReader();r.onload=ev=>{imgs.push(ev.target.result);renderImgs();};r.readAsDataURL(f);});}
+function renderImgs(){
+  const g=document.getElementById('img-grid'),add=g.querySelector('.iadd');
+  g.innerHTML='';
+  imgs.forEach((src,i)=>{const img=document.createElement('img');img.src=src;img.className='ithumb';img.onclick=()=>{if(confirm('Ta bort?')){imgs.splice(i,1);renderImgs();}};g.appendChild(img);});
+  g.appendChild(add);
 }
 
-function weatherCode(c){
-  if(c===0)return'Klart';if(c<=2)return'Halvklart';if(c===3)return'Mulet';
-  if(c<=49)return'Dimma';if(c<=59)return'Duggregn';if(c<=69)return'Regn';
-  if(c<=79)return'Snö';if(c<=82)return'Skurar';if(c<=99)return'Åska';return'Okänt';
-}
-
-function updateBattery(){
-  const v=parseInt(document.getElementById('battery').value)||0;
-  const fill=document.getElementById('battery-fill');
-  fill.style.width=v+'%';
-  fill.style.background=v>50?'#3fb950':v>20?'#d29922':'#f85149';
-}
-
-function handleImages(e){
-  const files=[...e.target.files];
-  files.forEach(f=>{
-    const reader=new FileReader();
-    reader.onload=ev=>{images.push(ev.target.result);renderImages();}
-    reader.readAsDataURL(f);
-  });
-}
-
-function renderImages(){
-  const grid=document.getElementById('img-grid');
-  const add=grid.querySelector('.img-add');
-  grid.innerHTML='';
-  images.forEach((src,i)=>{
-    const img=document.createElement('img');
-    img.src=src;img.className='img-thumb';
-    img.onclick=()=>{if(confirm('Ta bort bild?')){images.splice(i,1);renderImages();}}
-    grid.appendChild(img);
-  });
-  grid.appendChild(add);
-}
-
-async function runAI(){
-  const txt=document.getElementById('ai-input').value.trim();
-  if(!txt){showToast('Ange en beskrivning först');return}
-  const btn=document.getElementById('ai-btn');
-  const status=document.getElementById('ai-status');
-  btn.disabled=true;btn.textContent='Analyserar';btn.classList.add('loading-dots');
-  status.textContent='Claude genererar 7S-rapport...';
-  const spaningsfraga=document.getElementById('spaningsfraga').value;
-  try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:CLAUDE_MODEL,
-        max_tokens:1000,
-        system:`Du är en militär rapportassistent för svenska Försvarsmakten. Din uppgift är att ta emot fri text från en soldat och strukturera den enligt den svenska 7S-modellen för MRPAS-rapportering.
-Spaningsfrågan att besvara: "${spaningsfraga||'Ej angiven'}"
-Svara ENDAST med ett JSON-objekt i detta exakta format, inga backticks, ingen preamble:
-{"s1":"...","s2":"...","s3":"...","s4":"...","s5":"...","s6":"...","s7":"..."}
-s1=Situation, s2=Styrka, s3=Stridsvärde, s4=Sammansättning, s5=Stöd, s6=Samband, s7=Speciellt.
-Skriv militärt, kortfattat och faktabaserat på svenska. Använd bara information som finns i texten.`,
-        messages:[{role:'user',content:txt}]
-      })
-    });
-    const data=await resp.json();
-    const raw=data.content.map(b=>b.text||'').join('');
-    const clean=raw.replace(/```json|```/g,'').trim();
-    const obj=JSON.parse(clean);
-    ['s1','s2','s3','s4','s5','s6','s7'].forEach(k=>{if(obj[k]) document.getElementById(k).value=obj[k];});
-    status.textContent='✓ 7S-fält genererade — granska och redigera vid behov';
-    showToast('AI-rapport genererad!');
-  }catch(e){
-    status.textContent='Fel: '+e.message;
-    showToast('AI-fel: kontrollera anslutning');
-  }
-  btn.disabled=false;btn.textContent='Generera 7S-rapport med AI';btn.classList.remove('loading-dots');
-}
+function getChips(grp){return[...document.querySelectorAll(`#${grp} .chip.sel`)].map(c=>c.textContent.trim()).join(', ')}
+function getTogVal(grp){const el=document.querySelector(`#${grp} .tog.sel`);return el?el.textContent.trim():''}
+function v(id){return(document.getElementById(id)?.value||'').trim()}
 
 function buildReport(){
-  const v=id=>document.getElementById(id)?.value||'';
-  const d=new Date();
   let r='';
-  r+='═══════════════════════════════\n';
-  r+='       MRPAS RAPPORT — 7S\n';
-  r+='═══════════════════════════════\n';
-  r+=`Datum:      ${v('meta-date')}\n`;
-  r+=`Tid:        ${v('meta-time')}\n`;
-  r+=`Rapportör:  ${v('meta-name')}\n`;
-  r+=`Enhet:      ${v('meta-unit')}\n`;
-  r+=`Rapport nr: ${v('meta-nr')}\n`;
-  r+=`Batterinivå: ${v('battery')}%\n`;
-  r+=`Höjd:       ${v('altitude')} m ö.h.\n`;
-  const temp=document.getElementById('w-temp').textContent;
-  const wind=document.getElementById('w-wind').textContent;
-  const vis=document.getElementById('w-vis').textContent;
-  const desc=document.getElementById('w-desc').textContent;
-  r+=`Väder:      ${temp}, Vind ${wind}, Sikt ${vis} (${desc})\n`;
-  r+='───────────────────────────────\n';
-  r+=`SPANINGSFRÅGA:\n${v('spaningsfraga')}\n`;
-  r+='───────────────────────────────\n';
-  r+='7S-RAPPORT:\n\n';
-  r+=`[S1 - SITUATION]\n${v('s1')}\n\n`;
-  r+=`[S2 - STYRKA]\n${v('s2')}\n\n`;
-  r+=`[S3 - STRIDSVÄRDE]\n${v('s3')}\n\n`;
-  r+=`[S4 - SAMMANSÄTTNING]\n${v('s4')}\n\n`;
-  r+=`[S5 - STÖD]\n${v('s5')}\n\n`;
-  r+=`[S6 - SAMBAND]\n${v('s6')}\n\n`;
-  r+=`[S7 - SPECIELLT]\n${v('s7')}\n`;
-  if(pois.length){
-    r+='───────────────────────────────\n';
-    r+='PUNKTER AV INTRESSE (POI):\n';
-    pois.forEach((p,i)=>r+=`${i+1}. ${p.name} — ${p.lat}, ${p.lng}\n`);
+  r+='════════════════════════════════\n';
+  r+='      SPANINGSRAPPORT — 7S\n';
+  r+='      (Enl. SoldF 2001)\n';
+  r+='════════════════════════════════\n';
+  r+=`TILL:        ${v('m-recv')||'—'}\n`;
+  r+=`FRÅN:        ${v('m-name')||'—'}\n`;
+  r+=`ENHET:       ${v('m-unit')||'—'}\n`;
+  r+=`RAPPORT NR:  ${v('m-nr')||'—'}\n`;
+  const bat=v('battery'),alt=v('altitude');
+  if(bat)r+=`BATTERINIVÅ: ${bat}%\n`;
+  if(alt)r+=`HÖJD:        ${alt} m ö.h.\n`;
+  const wt=document.getElementById('w-temp').textContent;
+  const ww=document.getElementById('w-wind').textContent;
+  const wv=document.getElementById('w-vis').textContent;
+  const wd=document.getElementById('w-desc').textContent;
+  const wmw=v('wm-wind'),wmv=v('wm-vis');
+  if(wt!=='—')r+=`VÄDER:       ${wt}, Vind ${wmw||ww}, Sikt ${wmv||wv} (${wd})\n`;
+  r+='────────────────────────────────\n';
+  r+=`SPANINGSFRÅGA:\n${v('spaningsfraga')||'Ej angiven'}\n`;
+  r+='────────────────────────────────\n';
+
+  const tidsnr=v('s1-tidsnr');
+  r+=`[S1 — STUND]\n`;
+  r+=`Tidsnummer: ${tidsnr||'—'}\n`;
+  if(v('s1-dt'))r+=`(${new Date(v('s1-dt')).toLocaleString('sv-SE')})\n`;
+
+  r+=`\n[S2 — STÄLLE]\n`;
+  const csys=getTogVal('coord-sys');
+  r+=`Koordinatsystem: ${csys||'WGS84'}\n`;
+  r+=`Koordinat: ${v('s2-coord')||'—'}\n`;
+  if(v('s2-desc'))r+=`Plats: ${v('s2-desc')}\n`;
+
+  r+=`\n[S3 — STYRKA]\n`;
+  const pers=v('s3-pers'),veh=v('s3-veh'),cert=getTogVal('s3-cert');
+  if(pers&&pers!=='0')r+=`Personal: ${pers} st\n`;
+  if(veh&&veh!=='0')r+=`Fordon: ${veh} st\n`;
+  if(cert)r+=`Säkerhet: ${cert}\n`;
+  if(v('s3-text'))r+=v('s3-text')+'\n';
+
+  r+=`\n[S4 — SLAG]\n`;
+  const trupp=getChips('s4-trupp'),fordon=getChips('s4-fordon'),bev=getChips('s4-bev');
+  if(trupp)r+=`Typ trupp: ${trupp}\n`;
+  if(fordon)r+=`Fordon: ${fordon}\n`;
+  if(bev)r+=`Beväpning: ${bev}\n`;
+  if(v('s4-text'))r+=v('s4-text')+'\n';
+
+  r+=`\n[S5 — SYSSELSÄTTNING]\n`;
+  const ror=getChips('s5-ror'),rikt=getChips('s5-rikt'),verk=getChips('s5-verk');
+  if(ror)r+=`Rörelse: ${ror}\n`;
+  if(rikt)r+=`Riktning: ${rikt}\n`;
+  if(verk)r+=`Verksamhet: ${verk}\n`;
+  if(v('s5-text'))r+=v('s5-text')+'\n';
+
+  r+=`\n[S6 — SYMBOL]\n`;
+  const mark=getChips('s6-mark'),kamo=getChips('s6-kamo');
+  if(mark)r+=`Märkning: ${mark}\n`;
+  if(kamo)r+=`Färg/kamoflage: ${kamo}\n`;
+  if(v('s6-text'))r+=v('s6-text')+'\n';
+
+  r+=`\n[S7 — SAGESMAN]\n`;
+  const obstype=getTogVal('s7-obstype');
+  if(obstype)r+=`Observationstyp: ${obstype}\n`;
+  if(v('s7-name'))r+=`Sagesman: ${v('s7-name')}\n`;
+  r+=`Rapportör: ${v('m-name')||'—'}, ${v('m-unit')||'—'}\n`;
+  if(v('s7-text'))r+=v('s7-text')+'\n';
+
+  const s8atg=getChips('s8-atg'),s8txt=v('s8-text');
+  if(s8atg||s8txt){
+    r+=`\n[S8 — SEDAN]\n`;
+    if(s8atg)r+=`${s8atg}\n`;
+    if(s8txt)r+=s8txt+'\n';
   }
-  r+='═══════════════════════════════\n';
+
+  if(pois.length){
+    r+='\n────────────────────────────────\n';
+    r+='PUNKTER AV INTRESSE (POI):\n';
+    pois.forEach((p,i)=>r+=`${i+1}. ${p.name} — ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}\n`);
+  }
+  r+='\n════════════════════════════════\n';
+  r+=`Genererad: ${new Date().toLocaleString('sv-SE')}\n`;
   return r;
 }
 
 function sendSignal(){
   const txt=buildReport();
-  const enc=encodeURIComponent(txt);
-  const url='sgnl://send?text='+enc;
-  window.location.href=url;
+  window.location.href='sgnl://send?text='+encodeURIComponent(txt);
   setTimeout(()=>{
-    if(navigator.share){navigator.share({title:'MRPAS Rapport',text:txt}).catch(()=>{})}
-    else{navigator.clipboard.writeText(txt).then(()=>showToast('Kopierat — öppna Signal manuellt')).catch(()=>showToast('Öppna Signal och klistra in rapporten'))}
+    if(navigator.share)navigator.share({title:'Spaningsrapport 7S',text:txt}).catch(()=>{});
+    else navigator.clipboard.writeText(txt).then(()=>showToast('Kopierat — öppna Signal manuellt')).catch(()=>{});
   },800);
 }
-
-function copyReport(){
-  const txt=buildReport();
-  navigator.clipboard.writeText(txt).then(()=>showToast('Rapport kopierad till urklipp!')).catch(()=>showToast('Kunde ej kopiera'));
-}
-
-function printReport(){
-  const txt=buildReport();
-  const w=window.open('','_blank');
-  w.document.write(`<pre style="font-family:monospace;font-size:13px;padding:20px">${txt}</pre>`);
-  w.print();
-}
-
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),3000);
-}
+function copyRpt(){navigator.clipboard.writeText(buildReport()).then(()=>showToast('Rapport kopierad!')).catch(()=>showToast('Kunde ej kopiera'));}
+function printRpt(){const w=window.open('','_blank');w.document.write('<pre style="font-family:monospace;font-size:13px;padding:20px;white-space:pre-wrap">'+buildReport()+'</pre>');w.print();}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 </script>
 </body>
 </html>
